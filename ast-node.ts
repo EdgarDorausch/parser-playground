@@ -75,7 +75,7 @@ export class AstNode_Operation extends AstNode {
   precSort(): AstNode {
     const alpha = this.left;
     const op = this.opName;
-    const x = this.right;
+    const x = this.right.precSort();
 
     const sorted = alpha.precSort();
     if (sorted instanceof AstNode_Operation) {

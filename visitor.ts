@@ -15,11 +15,11 @@ class CalculatorInterpreter extends VisitorCnstr {
   }
 
   Expr(ctx: CstChildrenDictionary): AstNode {
-    console.log(ctx)
+    // console.log(ctx)
 
     let astRoot = this.visit(<CstNode>ctx.leftOperand[0]);
 
-    for(let i=0; i < ctx.OpName.length; i++) {
+    for(let i=0; i < ctx.OpName?.length ?? 0; i++) {
       const opName = (<IToken>ctx.OpName[i]).image;
       const rightOperand = this.visit(<CstNode>ctx.manyOperand[i])
 
@@ -30,7 +30,7 @@ class CalculatorInterpreter extends VisitorCnstr {
   }
 
   Operand(ctx: CstChildrenDictionary) {
-    console.log(ctx);
+    // console.log(ctx);
 
     if(ctx.NumberLiteral) {
       return new AstNode_Number(Number((<IToken>ctx.NumberLiteral[0]).image));
@@ -66,5 +66,5 @@ export function toAst(inputText: string) {
 
   // Visit
   const ast = toAstVisitorInstance.visit(cst)
-  return ast
+  return ast.precSort()
 }
