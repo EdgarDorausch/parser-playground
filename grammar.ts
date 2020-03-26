@@ -60,19 +60,22 @@ class AstNode_Operation extends AstNode {
   }
 
   precSort(): AstNode {
-    const left1 = this.left;
-    const right1 = this.right;
-    const op1 = this.opName;
+    const alpha = this.left;
+    const op = this.opName;
+    const x = this.right;
 
-    if (left1 instanceof AstNode_Operation) {
-      const left2 = left1.left;
-      const right2 = left1.right;
-      const op2 = left1.opName;
-      return getPrecedence(op2) >= getPrecedence(op1) ?
-        new AstNode_Operation(op1, left1.precSort(), right1.precSort()) :
-        new AstNode_Operation(op2, left2.precSort(), new AstNode_Operation(op1, right2, right1).precSort())
+    const sorted = alpha.precSort();
+    if (sorted instanceof AstNode_Operation) {
+      const beta = sorted.left;
+      const op_ = sorted.opName;
+      const gamma = sorted.right;
+      return getPrecedence(op_) >= getPrecedence(op) ?
+        // (b op' c) op x
+        new AstNode_Operation(op, sorted, x) :
+        // b op' (c op x)
+        new AstNode_Operation(op_, beta, new AstNode_Operation(op, gamma, x))
     } else {
-      return new AstNode_Operation(this.opName, left1.precSort(), right1.precSort())
+      return new AstNode_Operation(this.opName, sorted, x)
     }
 
   }
