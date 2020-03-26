@@ -1,4 +1,5 @@
 import { createToken, Lexer, CstParser, EmbeddedActionsParser } from "chevrotain";
+import { allTokens, Tokens } from './tokens';
 
 
 type OpSpec = {prec: number, fun: (a: number, b: number) => number}
@@ -102,38 +103,6 @@ class AstNode_Bracket extends AstNode {
 
 
 
-
-
-
-
-const LBracket = createToken({ name: "LBracket", pattern: /\(/ });
-const RBracket = createToken({ name: "RBracket", pattern: /\)/ });
-const OpName = createToken({ name: "OpName", pattern: /(\*|\+|\\|=|-|~|%|!|<|>|\/)+/});
-
-
-const FunctionIdentifier = createToken({
-  name: "FunctionIdentifier",
-  pattern: /[a-z]+/
-})
-
-const NumberLiteral = createToken({
-  name: "NumberLiteral",
-  pattern: /-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/
-})
-const WhiteSpace = createToken({
-  name: "WhiteSpace",
-  pattern: /[ \t\n\r]+/,
-  group: Lexer.SKIPPED
-})
-
-const allTokens = [
-  WhiteSpace,
-  NumberLiteral,
-  FunctionIdentifier,
-  LBracket,
-  RBracket,
-  OpName
-]
 export const CalculatorLexer = new Lexer(allTokens)
 
 const funMap: any = {
@@ -161,7 +130,7 @@ export class CalculatorParser extends CstParser {
     this.MANY({
       DEF: () => {
         // const opName = 
-        this.CONSUME(OpName).image;
+        this.CONSUME(Tokens.OpName).image;
         // let newOperand: AstNode = 
         this.SUBRULE2(this.Operand, {LABEL: 'manyOperand'});
 
@@ -173,11 +142,11 @@ export class CalculatorParser extends CstParser {
   })
 
   public bracketExpr = this.RULE("bracketExpr", () => {
-    this.CONSUME(LBracket)
+    this.CONSUME(Tokens.LBracket)
     // let astNode = new AstNode_Bracket(
     this.SUBRULE(this.Expr)
       // );
-    this.CONSUME(RBracket)
+    this.CONSUME(Tokens.RBracket)
 
     // return astNode;
   })
@@ -187,7 +156,7 @@ export class CalculatorParser extends CstParser {
       { ALT: () => this.SUBRULE(this.bracketExpr) },
       { ALT: () => {
         // const num = Number(
-        this.CONSUME(NumberLiteral).image
+        this.CONSUME(Tokens.NumberLiteral).image
         // )
         // return new AstNode_Number(num)
       } },
