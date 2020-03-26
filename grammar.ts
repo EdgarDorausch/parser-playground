@@ -18,7 +18,7 @@ abstract class AstNode {
 
   abstract _toString(indent: number): string
   abstract eval(): number;
-  abstract opSort(): AstNode;
+  abstract precSort(): AstNode;
 }
 
 class AstNode_Number extends AstNode {
@@ -34,7 +34,7 @@ class AstNode_Number extends AstNode {
     return this.value;
   }
 
-  opSort() {
+  precSort() {
     return this;
   }
 
@@ -59,7 +59,7 @@ class AstNode_Operation extends AstNode {
     return spec.fun(this.left.eval(), this.right.eval())
   }
 
-  opSort(): AstNode {
+  precSort(): AstNode {
     const left1 = this.left;
     const right1 = this.right;
     const op1 = this.opName;
@@ -69,10 +69,10 @@ class AstNode_Operation extends AstNode {
       const right2 = left1.right;
       const op2 = left1.opName;
       return getPrecedence(op2) >= getPrecedence(op1) ?
-        new AstNode_Operation(op1, left1.opSort(), right1.opSort()) :
-        new AstNode_Operation(op2, left2.opSort(), new AstNode_Operation(op1, right2, right1).opSort())
+        new AstNode_Operation(op1, left1.precSort(), right1.precSort()) :
+        new AstNode_Operation(op2, left2.precSort(), new AstNode_Operation(op1, right2, right1).precSort())
     } else {
-      return new AstNode_Operation(this.opName, left1.opSort(), right1.opSort())
+      return new AstNode_Operation(this.opName, left1.precSort(), right1.precSort())
     }
 
   }
@@ -92,8 +92,8 @@ class AstNode_Bracket extends AstNode {
     return this.child.eval()
   }
 
-  opSort() {
-    return this.child.opSort()
+  precSort() {
+    return this.child.precSort()
   }
 }
 
