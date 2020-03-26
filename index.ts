@@ -1,9 +1,11 @@
-import { calcParse } from './grammar';
+import { calcParse } from './parser';
+import { toAst } from './visitor';
 
-let ast = calcParse(
-  '1 - 4 * 2 + 5'
-).ast;
-ast = ast.precSort()
-console.log(ast.toString())
-console.log(ast.eval())
+
+const str = '1 - 2 * 3';
+
+let ast = toAst(str);
+// ast = ast.precSort()
+console.log(ast)
+// console.log(ast.eval())
 

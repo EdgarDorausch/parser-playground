@@ -134,7 +134,7 @@ const allTokens = [
   RBracket,
   OpName
 ]
-const CalculatorLexer = new Lexer(allTokens)
+export const CalculatorLexer = new Lexer(allTokens)
 
 const funMap: any = {
   sin: Math.sin,
@@ -142,7 +142,7 @@ const funMap: any = {
   sqrt: Math.sqrt
 }
 
-class CalculatorParser extends EmbeddedActionsParser {
+export class CalculatorParser extends CstParser {
   constructor() {
     super(allTokens)
     this.performSelfAnalysis()
@@ -152,44 +152,52 @@ class CalculatorParser extends EmbeddedActionsParser {
   // This allows for using access control (public/private/protected) and more importantly "informs" the TypeScript compiler
   // about the API of our Parser, so referencing an invalid rule name (this.SUBRULE(this.oopsType);)
   // is now a TypeScript compilation error.
-  public Expr = this.RULE<AstNode>("Expr", () => {
-    let val = 0;
+  public Expr = this.RULE("Expr", () => {
+    // let val = 0;
 
-    let astRoot: AstNode = this.SUBRULE1(this.Operand);
+    // let astRoot: AstNode = 
+    this.SUBRULE1(this.Operand, {LABEL: 'leftOperand'});
 
     this.MANY({
       DEF: () => {
-        const opName = this.CONSUME(OpName).image;
-        let newOperand: AstNode = this.SUBRULE2(this.Operand);
+        // const opName = 
+        this.CONSUME(OpName).image;
+        // let newOperand: AstNode = 
+        this.SUBRULE2(this.Operand, {LABEL: 'manyOperand'});
 
-        astRoot = new AstNode_Operation(opName, astRoot, newOperand)
+        // astRoot = new AstNode_Operation(opName, astRoot, newOperand)
       }
     })
 
-    return astRoot;
+    // return astRoot;
   })
 
-  public bracketExpr = this.RULE<AstNode>("bracketExpr", () => {
+  public bracketExpr = this.RULE("bracketExpr", () => {
     this.CONSUME(LBracket)
-    let astNode = new AstNode_Bracket(this.SUBRULE(this.Expr));
+    // let astNode = new AstNode_Bracket(
+    this.SUBRULE(this.Expr)
+      // );
     this.CONSUME(RBracket)
 
-    return astNode;
+    // return astNode;
   })
 
-  public Operand = this.RULE<AstNode>("Operand", () => {
+  public Operand = this.RULE("Operand", () => {
     return this.OR([
       { ALT: () => this.SUBRULE(this.bracketExpr) },
       { ALT: () => {
-        const num = Number(this.CONSUME(NumberLiteral).image)
-        return new AstNode_Number(num)
+        // const num = Number(
+        this.CONSUME(NumberLiteral).image
+        // )
+        // return new AstNode_Number(num)
       } },
     ])
   })
 }
 
 // reuse the same parser instance.
-const parser = new CalculatorParser()
+export const parser = new CalculatorParser()
+export const Visitor = parser.getBaseCstVisitorConstructor();
 
 export function calcParse(text: string) {
   const lexResult = CalculatorLexer.tokenize(text)
