@@ -1,9 +1,8 @@
-import { calcParse } from './grammar';
+import { toAst } from './visitor';
+import { Tokens, allTokens } from './tokens';
 
-let ast = calcParse(
-  '1 - 4 * 2 + 5'
-).ast;
-ast = ast.precSort()
+
+const str = '1 - 2 * 6';
+
+let ast = toAst(str);
 console.log(ast.toString())
-console.log(ast.eval())
-
