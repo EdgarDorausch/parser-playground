@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node-dev --respawn index.ts"
+    "watch": "ts-node-dev --respawn index.ts",
+    "start": "ts-node index.ts"
   },
   "repository": {
     "type": "git",
@@ -18,6 +19,7 @@
   },
   "homepage": "https://github.com/EdgarDorausch/parser-playground#readme",
   "dependencies": {
+    "@types/node": "^13.9.5",
     "chevrotain": "^6.5.0",
     "ts-node": "^8.8.1",
     "ts-node-dev": "^1.0.0-pre.44",
