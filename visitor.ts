@@ -69,5 +69,5 @@ export function toAst(inputText: string) {
 
   // Visit
   const ast = toAstVisitorInstance.visit(cst)
-  return ast //.compile()
+  return ast.compile()
 }

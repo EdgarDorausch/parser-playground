@@ -1,5 +1,26 @@
 import { CompiledAstNode, CompiledAstNode_Operation, CompiledAstNode_Number } from './compiledAstNode';
 
+class DefinitionTable {
+  map: {[k: string]: number} = {}
+
+  add(varName: string, value: number) {
+    this.map[varName] = value;
+  }
+
+  get(varName: string) {
+    const value = this.map[varName];
+
+    if(value === undefined)
+      throw new Error(`Variable '${varName}' is not defined!`);
+
+    return value;
+  }
+}
+
+const myTable = new DefinitionTable();
+myTable.add('x', 100);
+
+
 interface OperationSpec {
   prec: number,
   fun: (a: number, b: number) => number
@@ -117,6 +138,6 @@ export class IntermediateAstNode_VariableUsage extends IntermediateAstNode {
   }
 
   compile(): CompiledAstNode {
-    throw new Error('Not implemented yet!');
+    return new CompiledAstNode_Number(myTable.get(this.varName));
   }
 }
