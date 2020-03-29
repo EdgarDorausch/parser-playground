@@ -2,9 +2,10 @@ import { CalculatorParser, parser } from './parser';
 import { CstChildrenDictionary, CstNode, ICstVisitor, IToken } from 'chevrotain';
 import { lexer } from './lexer';
 import { AstNode, AstNode_Operation, AstNode_Number, AstNode_Bracket } from './ast-node';
+import { IntermediateAstNode_Number, IntermediateAstNode, IntermediateAstNode_Operation, IntermediateAstNode_Bracket, IntermediateAstNode_VariableUsage } from './intermediate-ast-node';
 
 
-const VisitorCnstr: {new (...args: any[]): ICstVisitor<any, AstNode>}  = parser.getBaseCstVisitorConstructor();
+const VisitorCnstr: {new (...args: any[]): ICstVisitor<any, IntermediateAstNode>}  = parser.getBaseCstVisitorConstructor();
 
 
 class CalculatorInterpreter extends VisitorCnstr {
@@ -14,7 +15,7 @@ class CalculatorInterpreter extends VisitorCnstr {
     this.validateVisitor()
   }
 
-  Expr(ctx: CstChildrenDictionary): AstNode {
+  Expr(ctx: CstChildrenDictionary): IntermediateAstNode {
     // console.log(ctx)
 
     let astRoot = this.visit(<CstNode>ctx.leftOperand[0]);
@@ -23,7 +24,7 @@ class CalculatorInterpreter extends VisitorCnstr {
       const opName = (<IToken>ctx.OpName[i]).image;
       const rightOperand = this.visit(<CstNode>ctx.manyOperand[i])
 
-      astRoot = new AstNode_Operation(opName, astRoot, rightOperand);
+      astRoot = new IntermediateAstNode_Operation(opName, astRoot, rightOperand);
     }
 
     return astRoot;
@@ -33,7 +34,9 @@ class CalculatorInterpreter extends VisitorCnstr {
     // console.log(ctx);
 
     if(ctx.NumberLiteral) {
-      return new AstNode_Number(Number((<IToken>ctx.NumberLiteral[0]).image));
+      return new IntermediateAstNode_Number(Number((<IToken>ctx.NumberLiteral[0]).image));
+    } else if(ctx.VarName) {
+      return new IntermediateAstNode_VariableUsage((<IToken>ctx.VarName[0]).image);
     } else {
       return this.visit(<CstNode>ctx.bracketExpr[0]);
     }   
@@ -41,7 +44,7 @@ class CalculatorInterpreter extends VisitorCnstr {
 
   bracketExpr(ctx: CstChildrenDictionary) {
     const child =  this.visit(<CstNode>ctx.Expr[0]);
-    return new AstNode_Bracket(child);
+    return new IntermediateAstNode_Bracket(child);
   }
 }
 
@@ -66,5 +69,5 @@ export function toAst(inputText: string) {
 
   // Visit
   const ast = toAstVisitorInstance.visit(cst)
-  return ast.precSort()
+  return ast //.compile()
 }

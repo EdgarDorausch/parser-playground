@@ -12,7 +12,7 @@ rl.question('>>> ', (answer) => {
   
   let ast = toAst(answer);
   console.log(ast.toString())
-  console.log(ast.eval())
+  // console.log(ast.eval())
 
   rl.close();
 });

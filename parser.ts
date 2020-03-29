@@ -27,9 +27,8 @@ export class CalculatorParser extends CstParser {
   public Operand = this.RULE("Operand", () => {
     return this.OR([
       { ALT: () => this.SUBRULE(this.bracketExpr) },
-      { ALT: () => {
-        this.CONSUME(Tokens.NumberLiteral).image
-      } },
+      { ALT: () => this.CONSUME(Tokens.VarName) },
+      { ALT: () => this.CONSUME(Tokens.NumberLiteral) },
     ])
   })
 }
