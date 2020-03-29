@@ -7,12 +7,26 @@ export class CalculatorParser extends CstParser {
     this.performSelfAnalysis()
   }
 
+  public Statement = this.RULE("Statement", () => {
+    this.OR([
+      { ALT: () => this.SUBRULE(this.VarDefinition) },
+      { ALT: () => this.SUBRULE(this.Expr) }
+    ])
+  })
+
+  public VarDefinition = this.RULE("VarDefinition", () => {
+    this.CONSUME(Tokens.LetToken);
+    this.CONSUME(Tokens.VarName);
+    this.CONSUME(Tokens.EqualSign);
+    this.SUBRULE(this.Expr);
+  })
+
   public Expr = this.RULE("Expr", () => {
     this.SUBRULE1(this.Operand, {LABEL: 'leftOperand'});
 
     this.MANY({
       DEF: () => {
-        this.CONSUME(Tokens.OpName).image;
+        this.CONSUME(Tokens.OpName);
         this.SUBRULE2(this.Operand, {LABEL: 'manyOperand'});
       }
     })
@@ -25,7 +39,7 @@ export class CalculatorParser extends CstParser {
   })
 
   public Operand = this.RULE("Operand", () => {
-    return this.OR([
+    this.OR([
       { ALT: () => this.SUBRULE(this.bracketExpr) },
       { ALT: () => this.CONSUME(Tokens.VarName) },
       { ALT: () => this.CONSUME(Tokens.NumberLiteral) },
@@ -35,10 +49,3 @@ export class CalculatorParser extends CstParser {
 
 // reuse the same parser instance.
 export const parser = new CalculatorParser()
-
-
-function log<T>(x: T): T {
-  // console.log(x);
-  return x;
-}
-

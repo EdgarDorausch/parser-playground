@@ -5,14 +5,18 @@ const WhiteSpace = createToken({ name: "WhiteSpace", pattern: /[ \t\n\r]+/, grou
 const Keywords = {
   LET: 'let',
   DELETE: 'delete',
+  EXIT: 'exit'
 }
 const withoutKeywords = new RegExp(`(?!${Object.values(Keywords).join('|')}\\b)\\b\\w+`)
-console.log(withoutKeywords.source)
+// console.log(withoutKeywords.source)
 
 export const Tokens = {
   LetToken:           createToken({ name: "LetToken",           pattern: Keywords.LET}),
+
+  EqualSign:          createToken({ name: "EqualSign",          pattern: '='}),
   LBracket:           createToken({ name: "LBracket",           pattern: /\(/ }),
   RBracket:           createToken({ name: "RBracket",           pattern: /\)/ }),
+
   OpName:             createToken({ name: "OpName",             pattern: /(\*|\+|\\|=|-|~|%|!|<|>|\/)+/}),
   NumberLiteral:      createToken({ name: "NumberLiteral",      pattern: /-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?/}),
   VarName:            createToken({ name: "VarName",            pattern: withoutKeywords}),

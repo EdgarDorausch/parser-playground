@@ -1,10 +1,16 @@
+import { DefinitionTable } from './intermediate-ast-node';
+
+interface AstEvalArgs {
+  defTable: DefinitionTable
+}
+
 export abstract class CompiledAstNode {
   toString(): string {
     return this._toString(0);
   }
 
   abstract _toString(indent: number): string
-  abstract eval(): number;
+  abstract eval(args: AstEvalArgs): number;
 }
 
 export class CompiledAstNode_Number extends CompiledAstNode {
@@ -36,7 +42,24 @@ export class CompiledAstNode_Operation extends CompiledAstNode {
       this.right._toString(indent+1);
   }
 
-  eval() {
-    return this.fun(this.left.eval(), this.right.eval())
+  eval(args: AstEvalArgs) {
+    return this.fun(this.left.eval(args), this.right.eval(args))
+  }
+}
+
+export class CompiledAstNode_VariableDefinition extends CompiledAstNode {
+  constructor(public varName: string, public expression: CompiledAstNode) {
+    super();
+  }
+
+  _toString(indent: number) {
+    return '  '.repeat(indent) + `VariableDefinition: ${this.varName}` + '\n'
+      + this.expression._toString(indent+1);
+  }
+
+  eval(args: AstEvalArgs) {
+    const value = this.expression.eval(args);
+    args.defTable.add(this.varName, value);
+    return value;
   }
 }

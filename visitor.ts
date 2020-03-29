@@ -2,7 +2,7 @@ import { CalculatorParser, parser } from './parser';
 import { CstChildrenDictionary, CstNode, ICstVisitor, IToken } from 'chevrotain';
 import { lexer } from './lexer';
 import { AstNode, AstNode_Operation, AstNode_Number, AstNode_Bracket } from './ast-node';
-import { IntermediateAstNode_Number, IntermediateAstNode, IntermediateAstNode_Operation, IntermediateAstNode_Bracket, IntermediateAstNode_VariableUsage } from './intermediate-ast-node';
+import { IntermediateAstNode_Number, IntermediateAstNode, IntermediateAstNode_Operation, IntermediateAstNode_Bracket, IntermediateAstNode_VariableUsage, DefinitionTable, IntermediateAstNode_VariableDefinition } from './intermediate-ast-node';
 
 
 const VisitorCnstr: {new (...args: any[]): ICstVisitor<any, IntermediateAstNode>}  = parser.getBaseCstVisitorConstructor();
@@ -13,6 +13,25 @@ class CalculatorInterpreter extends VisitorCnstr {
     super()
     // This helper will detect any missing or redundant methods on this visitor
     this.validateVisitor()
+  }
+
+  Statement(ctx: CstChildrenDictionary): IntermediateAstNode {
+    switch(true) {
+      case 'Expr' in ctx:
+        return this.visit(<CstNode>ctx.Expr[0])
+      case 'VarDefinition' in ctx:
+        return this.visit(<CstNode>ctx.VarDefinition[0])
+      default:
+        throw new Error();
+    }
+  }
+
+  VarDefinition(ctx: CstChildrenDictionary): IntermediateAstNode {
+    // console.log(ctx)
+    return new IntermediateAstNode_VariableDefinition(
+      (<IToken>ctx.VarName[0]).image,
+      this.visit(<CstNode>ctx.Expr[0])
+    )
   }
 
   Expr(ctx: CstChildrenDictionary): IntermediateAstNode {
@@ -53,13 +72,13 @@ class CalculatorInterpreter extends VisitorCnstr {
 
 const toAstVisitorInstance = new CalculatorInterpreter()
 
-export function toAst(inputText: string) {
+export function toAst(inputText: string, defTable: DefinitionTable) {
   // Lex
   const lexResult = lexer.tokenize(inputText)
   parser.input = lexResult.tokens
 
   // Automatic CST created when parsing
-  const cst = parser.Expr()
+  const cst = parser.Statement()
   if (parser.errors.length > 0) {
       throw Error(
           "Sad sad panda, parsing errors detected!\n" +
@@ -69,5 +88,6 @@ export function toAst(inputText: string) {
 
   // Visit
   const ast = toAstVisitorInstance.visit(cst)
-  return ast.compile()
+
+  return ast.compile({defTable})
 }

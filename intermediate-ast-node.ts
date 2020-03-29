@@ -1,6 +1,10 @@
-import { CompiledAstNode, CompiledAstNode_Operation, CompiledAstNode_Number } from './compiledAstNode';
+import { CompiledAstNode, CompiledAstNode_Operation, CompiledAstNode_Number, CompiledAstNode_VariableDefinition } from './compiledAstNode';
 
-class DefinitionTable {
+export interface ImmutableDefinitionTable {
+  get(varName: string): number;
+}
+
+export class DefinitionTable implements ImmutableDefinitionTable {
   map: {[k: string]: number} = {}
 
   add(varName: string, value: number) {
@@ -16,10 +20,6 @@ class DefinitionTable {
     return value;
   }
 }
-
-const myTable = new DefinitionTable();
-myTable.add('x', 100);
-
 
 interface OperationSpec {
   prec: number,
@@ -48,13 +48,17 @@ const opMap = new OperationMap({
   '/': {prec: 1, fun: (a,b) => a/b},
 })
 
+interface AstCompileArgs {
+  defTable: ImmutableDefinitionTable
+}
+
 export abstract class IntermediateAstNode {
   toString(): string {
     return this._toString(0);
   }
 
   abstract _toString(indent: number): string
-  abstract compile(): CompiledAstNode;
+  abstract compile(args: AstCompileArgs): CompiledAstNode;
 }
 
 export class IntermediateAstNode_Number extends IntermediateAstNode {
@@ -70,7 +74,7 @@ export class IntermediateAstNode_Number extends IntermediateAstNode {
     return this.value;
   }
 
-  compile(): CompiledAstNode {
+  compile(args: AstCompileArgs): CompiledAstNode {
     return new CompiledAstNode_Number(this.value);
   }
 
@@ -87,13 +91,13 @@ export class IntermediateAstNode_Operation extends IntermediateAstNode {
       this.right._toString(indent+1);
   }
 
-  compile(): CompiledAstNode {
+  compile(args: AstCompileArgs): CompiledAstNode {
     const alpha = this.left;
     const op = this.opName;
     const spec = opMap.getOpSpec(op);
-    const x = this.right.compile();
+    const x = this.right.compile(args);
 
-    const sorted = alpha.compile();
+    const sorted = alpha.compile(args);
     if (sorted instanceof CompiledAstNode_Operation) {
       const beta = sorted.left;
       const op_ = sorted.opName;
@@ -123,8 +127,8 @@ export class IntermediateAstNode_Bracket extends IntermediateAstNode {
       this.child._toString(indent+1)
   }
 
-  compile(): CompiledAstNode {
-    return this.child.compile()
+  compile(args: AstCompileArgs): CompiledAstNode {
+    return this.child.compile(args)
   }
 }
 
@@ -137,7 +141,22 @@ export class IntermediateAstNode_VariableUsage extends IntermediateAstNode {
     return '  '.repeat(indent) + `VariableUsage: ${this.varName}`;
   }
 
-  compile(): CompiledAstNode {
-    return new CompiledAstNode_Number(myTable.get(this.varName));
+  compile(args: AstCompileArgs): CompiledAstNode {
+    return new CompiledAstNode_Number(args.defTable.get(this.varName));
+  }
+}
+
+export class IntermediateAstNode_VariableDefinition extends IntermediateAstNode {
+  constructor(public varName: string, public expression: IntermediateAstNode) {
+    super();
+  }
+
+  _toString(indent: number) {
+    return '  '.repeat(indent) + `VariableDefinition: ${this.varName}` + '\n'
+      + this.expression._toString(indent+1);
+  }
+
+  compile(args: AstCompileArgs): CompiledAstNode {
+    return new CompiledAstNode_VariableDefinition(this.varName, this.expression.compile(args))
   }
 }
